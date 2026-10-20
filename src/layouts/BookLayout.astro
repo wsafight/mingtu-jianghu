@@ -2,11 +2,12 @@
 import { book, chapters, chapterGroups, chapterCountText } from '../data/book';
 import { getSearchIndex } from '../data/search';
 import Icon from '../components/Icon.astro';
+import { withBase } from '../utils/base';
 import '../styles/global.css';
 
 interface Props { title?: string; description?: string; active?: string }
 const { title, description = '活侠传六条结缘路线、关键选择、留档年表与 roll 判定。', active = 'home' } = Astro.props;
-const searchIndex = await getSearchIndex();
+const searchIndex = (await getSearchIndex()).map((entry) => ({ ...entry, href: withBase(entry.href) }));
 ---
 <!doctype html>
 <html lang="zh-CN">
@@ -15,7 +16,7 @@ const searchIndex = await getSearchIndex();
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#f6f4ec" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
     <title>{title ? `${title} · ${book.title}` : `${book.title} — ${book.subtitle}`}</title>
     <script is:inline>
       try { if (localStorage.getItem('mingtu-theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch {}
@@ -25,25 +26,25 @@ const searchIndex = await getSearchIndex();
     <a class="skip-link" href="#main-content">跳到正文</a>
     <div class="reading-progress" aria-hidden="true"></div>
     <aside class="sidebar" id="book-navigation" aria-label="攻略书目录">
-      <a class="brand" href="/" aria-label="命途江湖首页">
+      <a class="brand" href={withBase('/')} aria-label="命途江湖首页">
         <span class="brand-seal">命</span><span><strong>{book.title}</strong><small>活侠传 · 随行攻略</small></span>
       </a>
       <button class="search-trigger" data-open-search><Icon name="search" size={16} /><span>搜人物、选项、条件</span><kbd>⌘ K</kbd></button>
       <nav>
-        <a href="/" class:list={['nav-link', { active: active === 'home' }]} aria-current={active === 'home' ? 'page' : undefined}><Icon name="book" size={17} /><span>卷首 · 江湖在此</span></a>
-        {chapterGroups.map((group) => <div class="nav-group"><p class="nav-group-title">{group}</p>{chapters.filter((chapter) => chapter.group === group).map((chapter) => <a href={`/guide/${chapter.id}/`} class:list={['nav-link', { active: active === chapter.id }]} aria-current={active === chapter.id ? 'page' : undefined}><span class="nav-number">{chapter.number}</span><span>{chapter.title}</span>{chapter.id === 'sister' && <span class="nav-dot" title="含 roll 判定" />}</a>)}</div>)}
-        <div class="nav-group"><p class="nav-group-title">案头工具</p><a href="/tools/roll/" class:list={['nav-link', { active: active === 'roll' }]} aria-current={active === 'roll' ? 'page' : undefined}><Icon name="dice" size={17} /><span>小师妹 roll 推算</span></a></div>
+        <a href={withBase('/')} class:list={['nav-link', { active: active === 'home' }]} aria-current={active === 'home' ? 'page' : undefined}><Icon name="book" size={17} /><span>卷首 · 江湖在此</span></a>
+        {chapterGroups.map((group) => <div class="nav-group"><p class="nav-group-title">{group}</p>{chapters.filter((chapter) => chapter.group === group).map((chapter) => <a href={withBase(`/guide/${chapter.id}/`)} class:list={['nav-link', { active: active === chapter.id }]} aria-current={active === chapter.id ? 'page' : undefined}><span class="nav-number">{chapter.number}</span><span>{chapter.title}</span>{chapter.id === 'sister' && <span class="nav-dot" title="含 roll 判定" />}</a>)}</div>)}
+        <div class="nav-group"><p class="nav-group-title">案头工具</p><a href={withBase('/tools/roll/')} class:list={['nav-link', { active: active === 'roll' }]} aria-current={active === 'roll' ? 'page' : undefined}><Icon name="dice" size={17} /><span>小师妹 roll 推算</span></a></div>
       </nav>
       <div class="sidebar-bottom"><span class="status-dot"></span><span>适用 {book.version}</span><small>{chapterCountText}卷 · 六段缘</small></div>
     </aside>
     <button class="nav-backdrop" aria-label="关闭目录" tabindex="-1"></button>
     <div class="book-shell">
       <header class="topbar">
-        <div class="topbar-start"><button class="icon-button mobile-menu" id="menu-toggle" aria-label="展开目录" aria-controls="book-navigation" aria-expanded="false"><Icon name="menu" /></button><a class="topbar-title" href="/">{book.subtitle}</a></div>
+        <div class="topbar-start"><button class="icon-button mobile-menu" id="menu-toggle" aria-label="展开目录" aria-controls="book-navigation" aria-expanded="false"><Icon name="menu" /></button><a class="topbar-title" href={withBase('/')}>{book.subtitle}</a></div>
         <div class="topbar-actions"><span class="edition">山门初刊 <span>／</span> {book.updated}</span><button class="icon-button compact-search" data-open-search aria-label="搜索攻略"><Icon name="search" size={18} /></button><button class="icon-button" id="theme-toggle" aria-label="切换夜读模式" title="切换日间 / 夜读"><span class="theme-sun"><Icon name="sun" size={18} /></span><span class="theme-moon"><Icon name="moon" size={18} /></span></button></div>
       </header>
       <main id="main-content"><slot /></main>
-      <footer class="site-footer"><a href="/">命途江湖</a><span>选择之前，翻一页。</span><a href="/guide/sources/">版本 {book.version} · 核对依据 <Icon name="arrow" size={14} /></a></footer>
+      <footer class="site-footer"><a href={withBase('/')}>命途江湖</a><span>选择之前，翻一页。</span><a href={withBase('/guide/sources/')}>版本 {book.version} · 核对依据 <Icon name="arrow" size={14} /></a></footer>
     </div>
     <dialog class="search-dialog" id="search-dialog" aria-labelledby="search-title">
       <div class="search-heading"><Icon name="search" /><label id="search-title" for="search-input" class="sr-only">搜索攻略</label><input id="search-input" type="search" placeholder="搜「小师妹」「我得去」「好感」…" autocomplete="off" /><button class="icon-button" id="search-close" aria-label="关闭搜索"><Icon name="close" size={18} /></button></div>

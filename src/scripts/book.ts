@@ -128,8 +128,9 @@ const resume = document.querySelector<HTMLAnchorElement>('#continue-reading');
 if (resume) {
   try {
     const saved = JSON.parse(storage.get('mingtu-reading') ?? 'null');
-    if (saved && index.some((entry) => entry.href === `/guide/${saved.id}/`)) {
-      resume.href = `/guide/${saved.id}/`;
+    const chapterHref = index.find((entry) => entry.href.endsWith(`/guide/${saved.id}/`))?.href;
+    if (saved && chapterHref) {
+      resume.href = chapterHref;
       const label = document.createElement('span');
       label.textContent = `续读 · ${saved.title}`;
       resume.prepend(label);
