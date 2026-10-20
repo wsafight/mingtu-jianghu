@@ -1,0 +1,48 @@
+---
+import BookLayout from '../layouts/BookLayout.astro';
+import Icon from '../components/Icon.astro';
+import { book, chapters, routeChapters, chapterCountText } from '../data/book';
+import timeline from '../data/timeline.json';
+---
+<BookLayout>
+  <div class="home-content">
+    <div class="page-eyebrow"><span class="tiny-rule"></span>一本随行的江湖选择书<span class="eyebrow-end">卷首 / OPENING</span></div>
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="small-label">活侠传 · 关键节点攻略</span>
+        <h1>命途<span>江湖</span><span class="title-stop">。</span></h1>
+        <p class="hero-lead">重要的选择，<br />在这里留个档。</p>
+        <p class="hero-description">六段结缘，{chapterCountText}卷备忘。按人物顺序走剧情，按专题查战斗、预算与装备。把前置、选择和断线节点放到该查的地方。</p>
+        <div class="hero-actions"><a class="button primary" href="/guide/preparation/" id="continue-reading">开始翻阅 <Icon name="arrow" size={17} /></a><a class="text-link" href="/guide/timeline/">按时间查节点 <Icon name="clock" size={16} /></a></div>
+        <div class="hero-edition"><span class="status-dot"></span>适用版本 {book.version}<span class="dot-separator">·</span>更新于 {book.updated}</div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
+        <span class="art-caption">一念之间<br />各有归途</span>
+        <div class="cover-book"><div class="book-binding"></div><div class="cover-border"><span class="cover-small">活侠传<br />关键节点攻略书</span><span class="cover-title">命途江湖</span><span class="cover-stamp">江<br />湖</span><svg class="cover-mountains" viewBox="0 0 240 150" fill="none"><path d="m-20 140 69-86 33 34 48-67 70 96 36-44 35 67" stroke="currentColor" stroke-width="1"/><path d="m-15 150 62-69 41 41 50-64 63 88 34-35 35 39" fill="currentColor" opacity=".09"/><path d="m130 21-12 52 20-15 27 45m-83-15-7 30-17-7" stroke="currentColor" opacity=".6"/></svg><span class="cover-bottom">山门初刊 · 二〇二六</span></div></div>
+        <span class="art-note">不负相逢，不误此行。</span>
+      </div>
+    </section>
+
+    <div class="book-stats"><div><strong>{String(routeChapters.length).padStart(2, '0')}</strong><span>结缘路线</span></div><div><strong>{timeline.length}</strong><span>留档节点</span></div><div><strong>{chapters.length}</strong><span>攻略章节</span></div><a href="/tools/roll/"><Icon name="dice" size={23} /><span>算清每一次<br /><b>小师妹 roll 判定</b></span><Icon name="arrow" size={17} /></a></div>
+
+    <section class="home-section bookmarks-section" aria-labelledby="bookmarks-heading">
+      <div class="section-heading"><div><p class="section-kicker">随手留签 / BOOKMARKS</p><h2 id="bookmarks-heading" tabindex="-1">我的收藏</h2></div><span class="quiet-note" id="bookmark-count" aria-live="polite">已收藏 0 卷</span></div>
+      <p class="bookmark-empty" id="bookmark-empty">还没有收藏。在章节顶部点击「收藏此卷」，下次可从这里直接打开。</p>
+      <div class="reference-grid">{chapters.map((chapter) => <div class="bookmark-card" data-bookmark-item={chapter.id} hidden><a class="reference-card" href={`/guide/${chapter.id}/`}><span class="reference-number">{chapter.number}</span><div><h3>{chapter.title}</h3><p>{chapter.description}</p></div></a><button class="icon-button" data-remove-bookmark={chapter.id} aria-label={`移除${chapter.title}收藏`} title="移除收藏"><Icon name="close" size={16} /></button></div>)}</div>
+      <noscript><p class="bookmark-empty">启用 JavaScript 后可查看保存在本浏览器的收藏。</p></noscript>
+    </section>
+
+    <a class="inline-tool cloud-feature" href="/guide/cloud/"><Icon name="book" size={24} /><div><strong>叶云裳 · 从初识开始的详细走法</strong><span>如何收留、怎样留住她、去哪拿书，每一步都有选项和成功标志。</span></div><Icon name="arrow" size={18} /></a>
+
+    <section class="home-section" aria-labelledby="routes-heading">
+      <div class="section-heading"><div><p class="section-kicker">卷中人 / SIX ENCOUNTERS</p><h2 id="routes-heading">这一程，为谁而来</h2></div><span class="quiet-note">选一条心意，查一段命途。</span></div>
+      <div class="route-grid">{routeChapters.map((chapter, index) => <a href={`/guide/${chapter.id}/`} class={`route-card accent-${chapter.accent}`}><div class="route-card-top"><span class="route-index">缘 · 0{index + 1}</span><span class="route-mark">{chapter.title.slice(-1)}</span></div><h3>{chapter.title}</h3><p class="route-subtitle">{chapter.subtitle}</p><p class="route-description">{chapter.description}</p><div class="route-tags">{chapter.tags?.map((tag) => <span>{tag}</span>)}</div><span class="route-open">翻阅此卷 <Icon name="arrow" size={16} /></span></a>)}</div>
+    </section>
+
+    <section class="roll-feature"><div class="feature-icon"><Icon name="dice" size={30} /></div><div><p class="section-kicker">选择之前，先算一算</p><h2>好感很高，为什么还是选不了？</h2><p>小师妹加分，师兄与掌门扣分。输入当前数值，看看「小师妹是我的！」还差几点。</p></div><a class="button secondary" href="/tools/roll/">打开 roll 推算 <Icon name="arrow" size={17} /></a></section>
+
+    <section class="home-section" aria-labelledby="book-heading"><div class="section-heading"><div><p class="section-kicker">案头卷 / REFERENCE</p><h2 id="book-heading">江湖之外，备忘在侧</h2></div><a class="text-link" href="/guide/sources/">查看核对依据 <Icon name="arrow" size={15} /></a></div><div class="reference-grid">{chapters.filter((chapter) => ['timeline', 'branches', 'alliance', 'combat', 'resources', 'crafting', 'recipes', 'achievements', 'troubleshooting'].includes(chapter.id)).map((chapter) => <a class="reference-card" href={`/guide/${chapter.id}/`}><span class="reference-number">{chapter.number}</span><div><h3>{chapter.title}</h3><p>{chapter.description}</p></div><Icon name="arrow" size={18} /></a>)}</div></section>
+    <div class="editorial-note"><span class="note-seal">记</span><p>本书按 <strong>{book.version}</strong> 的剧情文本与分支条件整理，包含必要剧透。<br />全局收藏与继承点，无法替当前周目补做剧情前置。</p><a href="/downloads/活侠传关键节点选择攻略.md" download class="text-link"><Icon name="download" size={16} />下载原文</a></div>
+  </div>
+</BookLayout>

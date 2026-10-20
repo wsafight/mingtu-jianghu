@@ -1,0 +1,48 @@
+---
+import { getCollection, render } from 'astro:content';
+import BookLayout from '../../layouts/BookLayout.astro';
+import Icon from '../../components/Icon.astro';
+import { book, chapters, chapterById } from '../../data/book';
+import timeline from '../../data/timeline.json';
+import chapterDownloads from '../../data/downloads.json';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('chapters');
+  return entries.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+const { entry } = Astro.props;
+const chapter = chapterById(entry.id)!;
+const { Content, headings } = await render(entry);
+const index = chapters.findIndex((item) => item.id === entry.id);
+const previous = chapters[index - 1];
+const next = chapters[index + 1];
+const readingTime = Math.max(1, Math.ceil((entry.body?.length ?? 0) / 450));
+const isTimeline = entry.id === 'timeline';
+const sectionHeadings = headings.filter((heading) => heading.depth === 2);
+const download = chapterDownloads[entry.id as keyof typeof chapterDownloads];
+const downloadText = entry.id === 'crafting' ? '保存全部需求、花费、满级效果与丹药用途。'
+  : entry.id === 'combat' ? '保存防具、医书、气力机制与三场关键决斗的查阅入口。'
+  : entry.id === 'resources' ? '保存通用钱账、修炼点和六条路线各自的行动安排。'
+  : entry.id === 'recipes' ? '保存图纸药方来源、逆鳞整链与六线可得物。'
+  : entry.id === 'achievements' ? '保存 22 项成就的需求、效果、特殊前置与继承奖励算法。'
+  : '保存一份，游戏时按阶段对照选择、成功标志与回档位置。';
+const checklistVersion = entry.id === 'cloud' ? 'detailed-v2:'
+  : ['sister', 'lan', 'long', 'mei', 'zhu'].includes(entry.id) ? 'walkthrough-v3:'
+  : entry.id === 'alliance' ? 'availability-v3:' : entry.id === 'branches' ? 'rescue-v4:' : '';
+---
+<BookLayout title={chapter.title} description={chapter.description} active={entry.id}>
+  <div class="reading-layout">
+    <article class="chapter-page" id="reading-article" data-chapter-id={entry.id} data-chapter-title={chapter.title}>
+      <div class="breadcrumb"><a href="/">卷首</a><Icon name="chevron" size={12} /><span>{chapter.group}</span><Icon name="chevron" size={12} /><span>{chapter.title}</span></div>
+      <header class="chapter-header"><div class="chapter-kicker"><span>第 {chapter.number} 卷</span><span class="tiny-rule"></span><span>{chapter.group}</span></div><h1>{chapter.title}</h1><p class="chapter-subtitle">{chapter.subtitle}</p><div class="chapter-meta"><span><Icon name="clock" size={14} />约 {readingTime} 分钟</span><span>{book.updated} 核对</span><button class="bookmark-button" id="bookmark-button" data-id={entry.id} aria-pressed="false"><Icon name="bookmark" size={14} /><span>收藏此卷</span></button><button class="icon-button print-button" id="print-page" aria-label="打印本章（含折叠内容）" title="打印本章（含折叠内容）"><Icon name="print" size={16} /></button></div></header>
+      <div class="takeaway"><span>本卷要记</span><p>{chapter.takeaway}</p></div>
+      {download && <a class="inline-tool" href={`/downloads/${download}`} download><Icon name="download" size={22} /><div><strong>{entry.id === 'crafting' ? '下载锻造与毒药图鉴' : `下载${chapter.title}详细攻略`}</strong><span>{downloadText}</span></div><Icon name="arrow" size={18} /></a>}
+      {!isTimeline && sectionHeadings.length > 0 && <details class="chapter-jump"><summary>按当前阶段跳读 · 本卷目录</summary><nav aria-label="按当前阶段跳读">{sectionHeadings.map((heading) => <a href={`#${heading.slug}`}>{heading.text}</a>)}</nav></details>}
+      {entry.id === 'sister' && <a class="inline-tool" href="/tools/roll/"><Icon name="dice" size={22} /><div><strong>师门好感让 roll 过不了？</strong><span>输入当前数值，查看最低所需骰点。</span></div><Icon name="arrow" size={18} /></a>}
+      {isTimeline ? <section class="timeline-section"><div class="timeline-filters" role="group" aria-label="筛选年表"><button class="filter-button active" data-timeline-filter="all" aria-pressed="true">全部节点</button><button class="filter-button" data-timeline-filter="第一年" aria-pressed="false">第一年</button><button class="filter-button" data-timeline-filter="第二年" aria-pressed="false">第二年</button><button class="filter-button" data-timeline-filter="第三年" aria-pressed="false">第三年</button><button class="filter-button" data-timeline-filter="第四年" aria-pressed="false">第四年</button><select id="timeline-route" aria-label="按路线筛选"><option value="all">所有路线</option>{chapters.filter((item) => item.group === '六段结缘').map((item) => <option value={item.id}>{item.title}</option>)}<option value="branches">师门分支</option><option value="alliance">西武林盟</option></select></div><p class="timeline-count" id="timeline-count" aria-live="polite">共 {timeline.length} 个留档节点</p><div class="timeline-list">{timeline.map((item, i) => <div class="timeline-item" data-years={(item.years ?? [item.year]).join(',')} data-routes={item.routes.join(',')}><div class="timeline-pin"><span>{String(i + 1).padStart(2, '0')}</span></div><div class="timeline-card"><p class="timeline-time">{item.time}</p><h2>{item.purpose}</h2><p>{item.check}</p><div class="timeline-tags">{item.routes.map((route) => <a href={`/guide/${route}/`}>{chapterById(route)?.title}</a>)}</div></div></div>)}</div><p class="timeline-empty" id="timeline-empty" hidden>当前筛选下没有节点。试试其他年份或路线。</p><div class="takeaway subtle"><span>留档提醒</span><p>日期是事件检查窗口。人物离场、前置缺失或进入其他支路时，同一天也不一定触发事件。用不同存档位保留关键分流。</p></div></section> : <div class="prose"><Content /></div>}
+      {chapter.checks && <section class="checklist" aria-labelledby="checklist-heading"><div class="checklist-heading"><div><p class="section-kicker">临行再看一眼</p><h2 id="checklist-heading">这一卷的自查清单</h2></div><button class="text-button" data-reset-checks>重置</button></div><p class="checklist-hint">按本章推荐走法记录，勾选仅保存在当前浏览器；带「可选」的项目不是结缘硬门槛，无需为勾满而改线。</p>{chapter.checks.map((check, i) => <label class="check-item"><input type="checkbox" data-check-key={`${entry.id}:${checklistVersion}${i}`} /><span>{check}</span></label>)}<span class="checklist-status" aria-live="polite"></span></section>}
+      <nav class="chapter-pagination" aria-label="章节导航">{previous ? <a href={`/guide/${previous.id}/`}><span>← 上一卷</span><strong>{previous.title}</strong></a> : <a href="/"><span>← 回到卷首</span><strong>命途江湖</strong></a>}{next ? <a href={`/guide/${next.id}/`} class="next-chapter"><span>下一卷 →</span><strong>{next.title}</strong></a> : <a href="/tools/roll/" class="next-chapter"><span>案头工具 →</span><strong>小师妹 roll 推算</strong></a>}</nav>
+    </article>
+    <aside class="page-toc" aria-label="本卷目录"><p class="toc-label">本卷书签</p>{sectionHeadings.length > 0 && !isTimeline ? <nav>{sectionHeadings.map((heading) => <a href={`#${heading.slug}`}>{heading.text.replace(/^\d+\.\s*/, '')}</a>)}</nav> : <p class="toc-description">{chapter.description}</p>}<div class="toc-bottom"><span class="toc-seal">阅</span><p>行到分岔处<br />记得先留档</p></div></aside>
+  </div>
+</BookLayout>

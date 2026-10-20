@@ -1,0 +1,30 @@
+---
+import BookLayout from '../../layouts/BookLayout.astro';
+import Icon from '../../components/Icon.astro';
+const people = [
+  { id: 'sister', name: '小师妹', value: 60, rate: '+100%', kind: 'positive' },
+  { id: 'brother1', name: '大师兄', value: 40, rate: '−30%', kind: 'negative' },
+  { id: 'brother2', name: '二师兄', value: 30, rate: '−30%', kind: 'negative' },
+  { id: 'brother3', name: '三师兄', value: 30, rate: '−30%', kind: 'negative' },
+  { id: 'brother4', name: '四师兄', value: 20, rate: '−20%', kind: 'negative' },
+  { id: 'master', name: '掌门', value: 40, rate: '−30%', kind: 'negative' },
+];
+---
+<BookLayout title="小师妹 roll 推算" description="输入小师妹与师门好感，计算「小师妹是我的！」所需骰点。" active="roll">
+  <div class="tool-page"><div class="breadcrumb"><a href="/">卷首</a><Icon name="chevron" size={12} /><span>案头工具</span></div><header class="chapter-header"><div class="chapter-kicker"><Icon name="dice" size={17} /><span>天命推算</span></div><h1>这一次，能留住她吗？</h1><p class="chapter-subtitle">算清「小师妹是我的！」背后的每一分。</p></header>
+    <div class="tool-intro"><p>若遇到告别 roll，小师妹好感加分，师兄与掌门好感扣分，总分达到 <strong>50</strong> 才能继续争取她。正常同行迎敌支路不一定经过它；已遇到这次判定时，把当前数值填在下面。</p><a href="/guide/sister/" class="text-link">返回小师妹完整攻略 <Icon name="arrow" size={15} /></a></div>
+    <noscript><div class="takeaway"><span>需要 JavaScript</span><p>推算工具需要启用浏览器 JavaScript。完整公式也可在小师妹章节中查阅。</p></div></noscript>
+    <div class="calculator" id="roll-calculator">
+      <form class="roll-form" id="roll-form"><div class="form-section-heading"><span>01</span><h2>人物好感</h2><button class="text-button" type="reset">恢复示例</button></div><div class="roll-input-grid">{people.map((person) => <label class={`roll-field ${person.kind}`}><span class="roll-field-label"><span>{person.name}</span><small>{person.rate}</small></span><input type="number" inputmode="numeric" id={`roll-${person.id}`} name={person.id} min="0" max="100" step="1" value={person.value} required /><span class="roll-field-unit">好感 / 100</span></label>)}</div><div class="form-section-heading"><span>02</span><h2>性格修正</h2></div><p class="field-help">填写 roll 界面显示的加减分，<strong>不是人物面板的原始性情、处世值</strong>。不清楚时可先填 0，再以实际界面核对。</p><div class="personality-grid"><label><span>性情修正</span><input type="number" inputmode="numeric" name="disposition" id="roll-disposition" min="-100" max="100" value="0" step="1" required /></label><label><span>处世修正</span><input type="number" inputmode="numeric" name="behaviour" id="roll-behaviour" min="-100" max="100" value="0" step="1" required /></label></div><p class="input-error" id="roll-error" role="alert" hidden>请填写有效整数：好感 0–100，性格修正 −100–100。</p></form>
+      <aside class="roll-result" aria-label="推算结果"><div class="result-heading"><span class="status-dot"></span>天命推算结果</div><div id="roll-output" aria-live="polite" aria-atomic="true"><span class="result-label">最低所需基础骰点</span><strong class="result-number" id="needed-roll">36<span> / 99</span></strong><div class="result-meter"><span id="result-meter-fill"></span></div><p class="result-status" id="result-status">计算中…</p><div class="result-breakdown"><div><span>全部修正合计</span><strong id="total-modifier">+14</strong></div><div><span>掷出 99 时的总分</span><strong id="maximum-result">113</strong></div><div><span>可过关的基础骰点</span><strong id="passing-outcomes">64 / 99 种</strong></div></div><p class="result-conclusion" id="roll-conclusion"></p></div><div class="result-footer"><Icon name="book" size={15} /><span>判定门槛 ≥50 · 逐项取整</span></div></aside>
+    </div>
+    <section class="tool-notes"><div><span class="note-number">一</span><h2>先看总分，再看点数</h2><p>大师兄好感 100 扣 30 分，好感 40 扣 12 分。其他条件不变，两者会让所需骰点相差 18。</p></div><div><span class="note-number">二</span><h2>重掷有用，也有上限</h2><p>基础骰点为 1–99。若掷出 99 仍不足 50，单纯重掷无法改变结果，应读取更早的档调整准备。</p></div><div><span class="note-number">三</span><h2>过这一关，仍需前置</h2><p>工具只计算这次 roll。小师妹参战、金乌首战胜利与心上人等条件，仍要按完整攻略分别确认。</p></div></section>
+    <details class="formula-details"><summary>展开计算公式与取整说明</summary><div class="prose"><pre><code>最终总分 = 基础骰点 + 小师妹好感 + 性情修正 + 处世修正
+         − round(大师兄好感 × 0.3) − round(二师兄好感 × 0.3)
+         − round(三师兄好感 × 0.3) − round(四师兄好感 × 0.2)
+         − round(掌门好感 × 0.3)</code></pre><p>每项按游戏的浮点数与就近取偶数规则分别取整。本工具只计算这次判定的基础骰点与固定修正，不包含额外命运干预。</p></div></details>
+  </div>
+  <script>
+    import '../../scripts/roll';
+  </script>
+</BookLayout>
